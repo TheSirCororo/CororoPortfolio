@@ -1,4 +1,5 @@
 import com.varabyte.kobweb.gradle.application.util.configAsKobwebApplication
+import kotlinx.html.link
 
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
@@ -13,7 +14,16 @@ version = "1.0-SNAPSHOT"
 kobweb {
     app {
         index {
-            description.set("Powered by Kobweb")
+            description.set("TheSirCororo")
+
+            head.add {
+                link(rel = "preconnect", href = "https://fonts.googleapis.com")
+                link(rel = "preconnect", href = "https://fonts.gstatic.com") { attributes["crossorigin"] = "" }
+                link(
+                    href = "https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap",
+                    rel = "stylesheet"
+                )
+            }
         }
     }
 }
