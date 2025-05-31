@@ -58,7 +58,7 @@ fun IndexPage() {
                         columns { repeat(4) { size(1.fr) } }
                         rows { repeat(1) { size(1.fr) } }
                     }
-                    .margin(top = 20.px)
+                    .margin(top = 5.px)
             ) {
                 SocialMediaButton("telegram_logo.svg", "https://t.me/cororo")
                 SocialMediaButton("github_logo.svg", "https://github.com/TheSirCororo")
