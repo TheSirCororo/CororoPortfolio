@@ -12,11 +12,12 @@ import com.varabyte.kobweb.silk.components.graphics.Image
 import com.varabyte.kobweb.silk.components.navigation.Link
 import com.varabyte.kobweb.silk.components.text.SpanText
 import com.varabyte.kobweb.silk.style.toAttrs
+import com.varabyte.kobweb.silk.style.toModifier
 import org.jetbrains.compose.web.css.AlignItems
-import org.jetbrains.compose.web.css.fr
 import org.jetbrains.compose.web.css.px
 import org.jetbrains.compose.web.dom.Div
 import ru.cororo.portfolio.HeadlineStyle
+import ru.cororo.portfolio.SocialMediaGridStyle
 import ru.cororo.portfolio.SubheadlineStyle
 
 @Composable
@@ -50,16 +51,7 @@ fun IndexPage() {
                 SpanText("17 y.o. software engineer")
             }
 
-            Box(
-                Modifier
-                    .fillMaxWidth()
-                    .gap(50.px)
-                    .grid {
-                        columns { repeat(4) { size(1.fr) } }
-                        rows { repeat(1) { size(1.fr) } }
-                    }
-                    .margin(top = 5.px)
-            ) {
+            Box(SocialMediaGridStyle.toModifier()) {
                 SocialMediaButton("telegram_logo.svg", "https://t.me/cororo")
                 SocialMediaButton("github_logo.svg", "https://github.com/TheSirCororo")
                 SocialMediaButton("vk_logo.svg", "https://vk.com/cororo2021")
