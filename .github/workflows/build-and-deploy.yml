@@ -4,31 +4,110 @@ on:
     branches: [ master ]
   pull_request:
     branches: [ master ]
+  # Rebuild and redeploy the current state of the branch on demand.
+  workflow_dispatch:
+
+# Never let two deploys run at the same time.
+concurrency:
+  group: site-deploy
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
 jobs:
   build:
-    if: ${{ github.event_name != 'pull_request' || github.repository != github.event.pull_request.head.repo.full_name }}
     runs-on: ubuntu-latest
+    # The export boots a headless browser to snapshot the pages, so this is
+    # minutes, not seconds - but it should never sit there for an hour.
+    timeout-minutes: 45
     permissions:
       packages: write
       contents: read
     steps:
-      - uses: actions/checkout@v3
-      - name: Build image
-        env:
-          IMAGE_NAME: cororo-portfolio
-        run: 'docker build -t $IMAGE_NAME --label "runnumber=${GITHUB_RUN_ID}" .'
-      - name: Log in to registry
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-      - name: Push image
-        env:
-          IMAGE_NAME: cororo-portfolio
+      - uses: actions/checkout@v4
+
+      # buildx is what makes the layer cache below work at all.
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Resolve image coordinates
+        id: meta
         run: |
-          IMAGE_ID=ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME
-          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
-          VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
-          [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
-          [ "$VERSION" == "main" ] && VERSION=latest
-          echo IMAGE_ID=$IMAGE_ID
-          echo VERSION=$VERSION
-          docker tag $IMAGE_NAME $IMAGE_ID:$VERSION
-          docker push $IMAGE_ID:$VERSION
+          image=$(printf 'ghcr.io/%s/cororo-portfolio' "$GITHUB_REPOSITORY_OWNER" | tr '[:upper:]' '[:lower:]')
+          {
+            echo "image=$image"
+            echo "tag=sha-${GITHUB_SHA::7}"
+          } >> "$GITHUB_OUTPUT"
+
+      # Pull requests stop before this: the build itself is the check, and a
+      # fork's read-only token could not push anyway.
+      - name: Log in to ghcr.io
+        if: ${{ github.event_name != 'pull_request' }}
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Two tags: the branch name is what the server deploys, `sha-<short>` is
+      # the immutable record of what was built and what a rollback would pin.
+      #
+      # The cache is what keeps this job honest about time: the Dockerfile
+      # resolves dependencies and the Kotlin/JS toolchain in their own layer,
+      # which survives a content-only change. Provenance attestations are off
+      # so that the tag resolves to a plain image, the way the server expects.
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: ${{ github.event_name != 'pull_request' }}
+          provenance: false
+          tags: |
+            ${{ steps.meta.outputs.image }}:${{ github.ref_name }}
+            ${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.tag }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy:
+    needs: build
+    # Only ever from master on this repository. `pull_request` events - including
+    # ones opened from forks - can never reach this job, and therefore never reach
+    # the deployment secret.
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/master') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    environment:
+      name: production
+      url: https://cororo.ru
+    steps:
+      # CI never touches the host: it POSTs to a single deploy webhook and the
+      # server pulls the image this run just pushed and restarts the service.
+      #
+      # The webhook URL is the whole secret - it carries an unguessable path and
+      # the service's own deploy token, and it is the only endpoint of the
+      # deployment machinery reachable from the internet.
+      - name: Trigger deployment
+        env:
+          WEBHOOK: ${{ secrets.DEPLOY_WEBHOOK }}
+        run: |
+          if [ -z "$WEBHOOK" ]; then
+            echo "::error::DEPLOY_WEBHOOK is not set"
+            exit 1
+          fi
+          # The URL is passed through an environment variable and quoted, never
+          # interpolated into the script body, so it cannot become shell code and
+          # does not end up in the run log. The body mirrors a push event, which
+          # is the shape the endpoint expects.
+          code=$(curl -sS -o response.txt -w '%{http_code}' --max-time 180 \
+                      -X POST \
+                      -H 'Content-Type: application/json' \
+                      -H 'X-GitHub-Event: push' \
+                      -d "{\"ref\":\"$GITHUB_REF\"}" \
+                      "$WEBHOOK")
+          cat response.txt
+          if [ "$code" != "200" ]; then
+            echo "::error::deploy webhook answered HTTP $code"
+            exit 1
+          fi

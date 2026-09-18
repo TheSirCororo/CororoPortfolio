@@ -1,11 +1,10 @@
-# Этап сборки
-FROM eclipse-temurin:21-jdk AS builder
+# ---------- сборка ----------
+FROM eclipse-temurin:21-jdk-noble AS builder
 
-# Установка необходимых системных библиотек
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     libnss3 \
     libnspr4 \
-    libasound2-dev \
+    libasound2t64 \
     libglib2.0-0t64 \
     libdbus-1-3 \
     libatk1.0-0t64 \
@@ -17,22 +16,21 @@ RUN apt-get update && apt-get install -y \
     libxrandr2 \
     libgbm1 \
     libxkbcommon0 \
-    curl unzip git \
     && rm -rf /var/lib/apt/lists/*
 
-# Установка Gradle вручную (если нужен Gradle 8.x)
-ENV GRADLE_VERSION=8.14
-RUN curl -sSL https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-bin.zip -o gradle.zip \
-    && unzip gradle.zip -d /opt \
-    && ln -s /opt/gradle-${GRADLE_VERSION}/bin/gradle /usr/bin/gradle \
-    && rm gradle.zip
-
-# Копируем исходники
 WORKDIR /app
-COPY . .
 
-# Выполняем сборку Kobweb
-RUN gradle kobwebExport \
+COPY gradlew gradle.properties settings.gradle.kts ./
+COPY gradle gradle
+COPY kotlin-js-store kotlin-js-store
+COPY site/build.gradle.kts site/
+# conf.yaml обязателен: без него плагин Kobweb не считает каталог своим проектом
+# и падает с "This project is not a Kobweb project".
+COPY site/.kobweb/conf.yaml site/.kobweb/conf.yaml
+RUN chmod +x gradlew && ./gradlew --no-daemon kotlinNpmInstall
+
+COPY . .
+RUN ./gradlew kobwebExport \
     -PkobwebReuseServer=false \
     -PkobwebEnv=DEV \
     -PkobwebRunLayout=FULLSTACK \
@@ -41,15 +39,13 @@ RUN gradle kobwebExport \
     --stacktrace \
     --no-daemon
 
-# Этап выполнения
-FROM eclipse-temurin:21-jre
+# ---------- выполнение ----------
+FROM eclipse-temurin:21-jre-noble
 
 WORKDIR /app
 
-# Копируем сгенерированное приложение
 COPY --from=builder /app/site/.kobweb/ .kobweb
 
-# Делаем скрипт исполняемым
 RUN chmod +x ./.kobweb/server/start.sh
 
 EXPOSE 8080

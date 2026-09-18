@@ -4,3 +4,6 @@ site/.kobweb/
 site/build
 .idea
 .gradle
+.git
+.kotlin
+example
