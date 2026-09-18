@@ -3,6 +3,7 @@ import kotlinx.html.link
 
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
+    alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.kobweb.application)
     alias(libs.plugins.kobwebx.markdown)
@@ -14,13 +15,17 @@ version = "1.0-SNAPSHOT"
 kobweb {
     app {
         index {
-            description.set("TheSirCororo")
+            description.set("Artem Musatenko (TheSirCororo) - Kotlin & JVM backend developer. Projects, experience and contacts.")
 
             head.add {
                 link(rel = "preconnect", href = "https://fonts.googleapis.com")
                 link(rel = "preconnect", href = "https://fonts.gstatic.com") { attributes["crossorigin"] = "" }
                 link(
                     href = "https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap",
+                    rel = "stylesheet"
+                )
+                link(
+                    href = "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap",
                     rel = "stylesheet"
                 )
             }
@@ -47,6 +52,7 @@ kotlin {
             // Uncomment the following if you want access to a large set of font-awesome icons:
             // implementation(libs.silk.icons.fa)
             implementation(libs.kobwebx.markdown)
+            implementation(libs.kotlinx.serialization.json)
         }
 
         // Uncomment the following if you pass `includeServer = true` into the `configAsKobwebApplication` call.

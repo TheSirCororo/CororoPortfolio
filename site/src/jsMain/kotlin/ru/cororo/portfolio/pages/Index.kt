@@ -1,62 +1,56 @@
 package ru.cororo.portfolio.pages
 
 import androidx.compose.runtime.Composable
-import com.varabyte.kobweb.compose.css.JustifyItems
-import com.varabyte.kobweb.compose.foundation.layout.Box
-import com.varabyte.kobweb.compose.foundation.layout.Column
-import com.varabyte.kobweb.compose.ui.Modifier
-import com.varabyte.kobweb.compose.ui.modifiers.*
-import com.varabyte.kobweb.compose.ui.toAttrs
 import com.varabyte.kobweb.core.Page
-import com.varabyte.kobweb.silk.components.graphics.Image
-import com.varabyte.kobweb.silk.components.navigation.Link
-import com.varabyte.kobweb.silk.components.text.SpanText
+import com.varabyte.kobweb.compose.ui.toAttrs
 import com.varabyte.kobweb.silk.style.toAttrs
 import com.varabyte.kobweb.silk.style.toModifier
-import org.jetbrains.compose.web.css.AlignItems
-import org.jetbrains.compose.web.css.px
+import kotlinx.browser.document
 import org.jetbrains.compose.web.dom.Div
-import ru.cororo.portfolio.HeadlineStyle
-import ru.cororo.portfolio.SocialMediaGridStyle
-import ru.cororo.portfolio.SubheadlineStyle
-
-@Composable
-fun SocialMediaButton(imageUrl: String, mediaUrl: String) {
-    Link(mediaUrl, Modifier.gridArea("auto")) {
-        Image(imageUrl)
-    }
-}
+import org.jetbrains.compose.web.dom.Main
+import org.jetbrains.compose.web.dom.Text
+import ru.cororo.portfolio.components.sections.*
+import ru.cororo.portfolio.content.PortfolioState
+import ru.cororo.portfolio.content.rememberPortfolio
+import ru.cororo.portfolio.model.Portfolio
+import ru.cororo.portfolio.theme.ContainerStyle
+import ru.cororo.portfolio.theme.StatusStyle
 
 @Page
 @Composable
 fun IndexPage() {
-    Box(
-        Modifier.fillMaxSize().alignItems(AlignItems.Center).justifyItems(JustifyItems.Center)
-    ) {
-        Column(Modifier.maxWidth(600.px).alignItems(AlignItems.Center)) {
-            Div(
-                Modifier.borderRadius(1000.px)
-                    .maxWidth(286.px)
-                    .maxHeight(286.px)
-                    .toAttrs()
-            ) {
-                Image("/my_photo.png")
-            }
+    when (val state = rememberPortfolio()) {
+        is PortfolioState.Loading -> Status("loading…")
+        is PortfolioState.Failed -> Status("Could not load the content: ${state.message}")
+        is PortfolioState.Ready -> PortfolioPage(state.portfolio)
+    }
+}
 
-            Div(HeadlineStyle.toAttrs()) {
-                SpanText("Artem Musatenko")
-            }
+@Composable
+private fun PortfolioPage(portfolio: Portfolio) {
+    document.title = "${portfolio.profile.name} — ${portfolio.profile.tagline}"
 
-            Div(SubheadlineStyle.toAttrs()) {
-                SpanText("17 y.o. software engineer")
-            }
+    NavHeader(portfolio)
 
-            Box(SocialMediaGridStyle.toModifier()) {
-                SocialMediaButton("telegram_logo.svg", "https://t.me/cororo")
-                SocialMediaButton("github_logo.svg", "https://github.com/TheSirCororo")
-                SocialMediaButton("vk_logo.svg", "https://vk.com/cororo2021")
-                SocialMediaButton("mail_logo.svg", "mailto:artem.cororo@gmail.com")
-            }
-        }
+    Main(ContainerStyle.toAttrs()) {
+        Hero(portfolio.profile)
+
+        // Section numbers are assigned here so that hiding a section in the JSON never leaves a gap.
+        var number = 0
+        fun next() = (++number).toString().padStart(2, '0')
+
+        SkillsSection(portfolio.profile, next())
+        TimelineSection("experience", next(), "Experience", portfolio.experience)
+        TimelineSection("education", next(), "Education & awards", portfolio.education)
+        ProjectsSection(next(), portfolio.projects)
+
+        PageFooter(portfolio.profile)
+    }
+}
+
+@Composable
+private fun Status(message: String) {
+    Div(ContainerStyle.toModifier().toAttrs()) {
+        Div(StatusStyle.toAttrs()) { Text(message) }
     }
 }
