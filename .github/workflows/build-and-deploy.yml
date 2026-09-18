@@ -34,8 +34,18 @@ jobs:
         id: meta
         run: |
           image=$(printf 'ghcr.io/%s/cororo-portfolio' "$GITHUB_REPOSITORY_OWNER" | tr '[:upper:]' '[:lower:]')
+          # On pull_request events GITHUB_REF_NAME is `<number>/merge`, which is
+          # not a valid tag - and a pull request has no business claiming the
+          # branch tag the server deploys. Anything else is sanitised, because a
+          # branch may legally contain characters a tag may not.
+          if [ "$GITHUB_EVENT_NAME" = pull_request ]; then
+            ref_tag="pr-${GITHUB_REF_NAME%%/*}"
+          else
+            ref_tag=$(printf '%s' "$GITHUB_REF_NAME" | tr -c 'A-Za-z0-9._-' '-' | tr -s '-')
+          fi
           {
             echo "image=$image"
+            echo "ref_tag=$ref_tag"
             echo "tag=sha-${GITHUB_SHA::7}"
           } >> "$GITHUB_OUTPUT"
 
@@ -63,7 +73,7 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           provenance: false
           tags: |
-            ${{ steps.meta.outputs.image }}:${{ github.ref_name }}
+            ${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.ref_tag }}
             ${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.tag }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
