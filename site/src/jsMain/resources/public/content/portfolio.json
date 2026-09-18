@@ -1,0 +1,107 @@
+{
+  "profile": {
+    "name": "Artem Musatenko",
+    "handle": "TheSirCororo",
+    "tagline": "Kotlin & JVM backend developer",
+    "location": "Moscow, Russia",
+    "avatar": "/my_photo.png",
+    "about": [
+      "Backend developer working mostly in Kotlin and Java: Ktor and Spring on the server, coroutines everywhere else, PostgreSQL and Docker around them.",
+      "Outside of work I build Minecraft plugins and mods used on public servers, and small Kotlin Multiplatform tools that I actually need myself."
+    ],
+    "skills": [
+      "Kotlin",
+      "Java",
+      "Ktor",
+      "Spring Boot",
+      "Coroutines",
+      "PostgreSQL",
+      "Docker",
+      "Gradle",
+      "Compose Multiplatform",
+      "Kotlin/JS",
+      "Paper API",
+      "GitHub Actions"
+    ],
+    "socials": [
+      { "label": "Telegram", "url": "https://t.me/cororo", "icon": "telegram", "primary": true },
+      { "label": "GitHub", "url": "https://github.com/TheSirCororo", "icon": "github" }
+    ]
+  },
+
+  "experience": [
+    {
+      "title": "Backend developer",
+      "org": "T-Bank",
+      "period": "August 2025 — now",
+      "url": "https://www.tbank.ru/",
+      "description": "Backend services in Kotlin and Java.",
+      "tags": ["Kotlin", "Java", "Spring Boot", "PostgreSQL"]
+    },
+    {
+      "title": "Minecraft plugin developer",
+      "org": "Freelance / open source",
+      "period": "2020 — now",
+      "description": "Plugins and mods for Paper/Spigot servers, published on SpigotMC, Hangar and Modrinth. Server-side Kotlin, protocol level work, integrations with forum and auth systems.",
+      "tags": ["Kotlin", "Paper API", "Protocol"]
+    }
+  ],
+
+  "education": [
+    {
+      "title": "Business Informatics",
+      "org": "Central University",
+      "url": "https://cu.ru",
+      "description": "Studying business informatics: software engineering, data and product management.",
+      "tags": ["Business Informatics"]
+    }
+  ],
+
+  "projects": [
+    {
+      "name": "YouTubeCounter",
+      "description": "Desktop app showing likes and views of a running YouTube stream in real time, plus a small server that exchanges the Google auth code for an access token. CI packages it for Windows, macOS and Linux on every push.",
+      "year": "2026",
+      "stars": 1,
+      "featured": true,
+      "tags": ["Kotlin", "Compose Multiplatform", "Ktor", "GitHub Actions"],
+      "links": [
+        { "label": "Source", "url": "https://github.com/TheSirCororo/YouTubeCounter", "icon": "github" },
+        { "label": "Releases", "url": "https://github.com/TheSirCororo/YouTubeCounter/releases", "icon": "link" }
+      ]
+    },
+    {
+      "name": "AuthMeIpsBridge",
+      "description": "Minecraft plugin linking an IPS forum with AuthMe Reloaded: a player registering in game automatically gets a forum account with the same credentials. Supports 1.8.x — 1.20.x.",
+      "year": "2024",
+      "stars": 2,
+      "featured": true,
+      "tags": ["Kotlin", "Paper API", "AuthMe", "IPS"],
+      "links": [
+        { "label": "Source", "url": "https://github.com/TheSirCororo/AuthMeIpsBridge", "icon": "github" },
+        { "label": "Modrinth", "url": "https://modrinth.com/plugin/authmeipsbridge", "icon": "link" },
+        { "label": "Spigot", "url": "https://www.spigotmc.org/resources/authme-ips-bridge-1-8-x-1-20-x.114042/", "icon": "link" }
+      ]
+    },
+    {
+      "name": "AuthServer",
+      "description": "Open-source Minecraft auth server core written from scratch in Kotlin — protocol handling, sessions and login flow without a vanilla server behind it.",
+      "year": "2022",
+      "stars": 5,
+      "featured": true,
+      "tags": ["Kotlin", "Minecraft protocol", "Netty"],
+      "links": [
+        { "label": "Source", "url": "https://github.com/TheSirCororo/AuthServer", "icon": "github" }
+      ]
+    },
+    {
+      "name": "StackCrafter",
+      "description": "Minecraft mod that makes shift-click in the recipe book craft a whole stack at once instead of a single item.",
+      "year": "2024",
+      "tags": ["Kotlin", "Minecraft mod"],
+      "links": [
+        { "label": "Source", "url": "https://github.com/TheSirCororo/StackCrafter", "icon": "github" }
+      ]
+    }
+  ]
+}
