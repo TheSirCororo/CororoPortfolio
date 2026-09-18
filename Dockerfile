@@ -22,7 +22,6 @@ WORKDIR /app
 
 COPY gradlew gradle.properties settings.gradle.kts ./
 COPY gradle gradle
-COPY kotlin-js-store kotlin-js-store
 COPY site/build.gradle.kts site/
 # conf.yaml обязателен: без него плагин Kobweb не считает каталог своим проектом
 # и падает с "This project is not a Kobweb project".
