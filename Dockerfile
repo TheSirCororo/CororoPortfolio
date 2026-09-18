@@ -29,7 +29,8 @@ COPY site/.kobweb/conf.yaml site/.kobweb/conf.yaml
 RUN chmod +x gradlew && ./gradlew --no-daemon kotlinNpmInstall
 
 COPY . .
-RUN ./gradlew kobwebExport \
+
+RUN chmod +x gradlew && ./gradlew kobwebExport \
     -PkobwebReuseServer=false \
     -PkobwebEnv=DEV \
     -PkobwebRunLayout=FULLSTACK \
